@@ -3,7 +3,11 @@ from pydantic import ValidationError
 from app import db
 from bson import ObjectId
 from app.models.products import *
+from app.models.sale import Sale
 from app.decorators import token_required
+import os
+import io
+import csv
 
 main_bp = Blueprint('main_bp', __name__)
 
@@ -79,8 +83,43 @@ def delete_product(token, product_id):
     return "", 204
 
 @main_bp.route('/sales/upload', methods=['POST'])
-def upload_sales():
-    return jsonify({"message":"Rota de upload do arquivo de vendas"})
+@token_required
+def upload_sales(token):
+    if 'file' not in request.files:
+        return jsonify({"error":"Nenhum arquivo foi encontrado"}), 400
+    
+    file = request.files['file']
+
+    if file.filename == '':
+        return jsonify({"error": "Nenhum arquivo selecionado"}), 400
+    
+    if file and file.filename.endswith('.csv'):
+        csv_stream = io.StringIO(file.stream.read().decode('UTF-8'), newline=None)
+        csv_reader = csv.DictReader(csv_stream)
+
+        sales_to_insert = []
+        error = []
+
+        for row_num, row in enumerate(csv_reader, 1):
+            try:
+                sale_data = Sale(**row)
+
+                sales_to_insert.append(sale_data.model_dump())
+            except ValidationError as e:
+                error.append(f'Linha {row_num} com dados inválidos')
+            except Exception:
+                error.append(f'Linha {row_num} com erro inesperado nos dados')
+
+        if sales_to_insert:
+            try:
+                db.sales.insert_many(sales_to_insert)
+            except Exception as e:
+                return jsonify({'error': str(e)})
+        return jsonify({
+            "message": "Upload realizado com sucesso",
+            "vendas importados": len(sales_to_insert),
+            "erros encontrados": error
+        }), 200
 
 @main_bp.route('/')
 def index():
