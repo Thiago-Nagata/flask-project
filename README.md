@@ -36,25 +36,25 @@ The project evolved from a backend-only REST API into a server-rendered web appl
 - Organizing routes for rendering, not just JSON
 
 # How to run locally
-// Clone the repository
+// Clone the repository:  
 git clone https://github.com/Thiago-Nagata/flask-project.git
 
-// Enter the project folder
+// Enter the project folder:  
 cd flask-project
 
-// Create virtual environment
+// Create virtual environment:  
 python -m venv venv
 
-// Activate environment
+// Activate environment:  
 - Windows:
 venv\Scripts\activate
 - macOS/Linux:
 source venv/bin/activate
 
-// Install dependencies
+// Install dependencies:  
 pip install -r requirements.txt
 
-// Run the application
+// Run the application:  
 python app.py
 
 # Environment Variables Required
