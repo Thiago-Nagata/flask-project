@@ -11,7 +11,7 @@ The project evolved from a backend-only REST API into a server-rendered web appl
 - Flask (Microframework)
 - MongoDB
 - JWT (JSON Web Tokens)
-- 
+ 
 # Project Evolution
 🔹 *Original Version (course)*
 - API REST
