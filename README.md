@@ -60,8 +60,8 @@ python app.py
 # Environment Variables Required
 Create a **.env** file on the root directory file and define the required environment variables:
 
-SECRET_KEY=your_secret_key
-MONGO_URI=your_mongodb_connection_string
-
+- SECRET_KEY=your_secret_key
+- MONGO_URI=your_mongodb_connection_string
+  
 These variables are required for the application to run properly.
 You may use a local MongoDB instance or a cloud service like MongoDB Atlas.
