@@ -57,7 +57,7 @@ pip install -r requirements.txt
 // Run the application
 python app.py
 
-**Environment Variables Required**
+# Environment Variables Required
 Create a **.env** file on the root directory file and define the required environment variables:
 
 SECRET_KEY=your_secret_key
