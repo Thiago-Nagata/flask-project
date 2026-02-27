@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Adicionar Produto</title>
+</head>
+<body>
+    <main>
+        <section class="edit-form">
+            <h1>Adicionar Produto</h1>
+            <form action="/products/add" method="POST">
+                <label>Nome</label>
+                <input type="text" name="name" required>
+
+                <label>Preço</label>
+                <input type="number" step="0.01" name="price" required>
+
+                <label>Descrição</label>
+                <input type="text" name="description">
+
+                <label>Estoque</label>
+                <input type="number" name="stock" required>
+
+                <button type="submit" class="btn-save">Salvar</button>
+                <a href="/products" class="btn-cancel">Cancelar</a>
+            </form>
+        </section>
+    </main>
+</body>
+</html>

@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request, current_app
+from flask import Blueprint, jsonify, make_response, redirect, render_template, request, current_app
 from pydantic import ValidationError
 from app import db
 from bson import ObjectId
@@ -8,6 +8,41 @@ from datetime import timezone, timedelta, datetime
 import jwt
 
 user_bp = Blueprint('user_bp', __name__)
+
+# Rota de Autenticação
+@user_bp.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template("login.html")
+    
+    try:
+        username = request.form.get("username")
+        password = request.form.get("password")
+        
+        if not username or not password:
+            return render_template("login.html", error="Preencha os campos")
+        
+        user = db.users.find_one({
+            "username": username, 
+            "password": password
+            })
+        
+    except Exception:
+        return render_template("login.html", error="Erro interno"), 500
+
+    if user:
+        token = jwt.encode( 
+            {
+                "user_id": str(user["_id"]),
+                "exp": datetime.now(timezone.utc) + timedelta(minutes = 30)
+            },
+            current_app.config['SECRET_KEY'],
+            algorithm='HS256'
+        )
+        response = make_response(redirect("/dashboard"))
+        response.set_cookie("token", token, httponly=True, samesite="Strict")
+        return response
+    return render_template("login.html", error="Credenciais inválidas"), 401
 
 # Create an user
 @user_bp.route("/usuarios", methods=["POST"])
@@ -30,35 +65,6 @@ def create_user():
     user_result = db.users.insert_one(user.model_dump())
     return jsonify({"message":"Rota de criação de usuarios",
                     "id": str(user_result.inserted_id)}), 201
-
-# Rota de Autenticação
-@user_bp.route('/login', methods=['POST'])
-def login():
-    try:
-        raw_data = request.get_json()
-        if not isinstance(raw_data, dict):
-            return jsonify({"error": "Body inválido"}), 400
-        
-        user = db.users.find_one({"username": raw_data["username"], 
-                                  "password": raw_data["password"]
-                                })
-    except KeyError:
-        return jsonify({"error": "body da requisição vazio"})
-    except Exception:
-        return jsonify({"error": "Erro durante a requisição de dado"}), 500
-
-    if user:
-        token = jwt.encode( 
-            {
-                "user_id": str(user["_id"]),
-                "exp": datetime.now(timezone.utc) + timedelta(minutes = 30)
-            },
-            current_app.config['SECRET_KEY'],
-            algorithm='HS256'
-        )
-        return jsonify({'access_token': token,
-                        "message":f"Rota de autenticação do usuario {user['username']}"}), 200
-    return jsonify({"error": "Credenciais inválidas"}), 401
 
 # List all users from DB
 @user_bp.route("/usuarios", methods=["GET"])

@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Editar produto</title>
+</head>
+<body>
+    <main>
+        <div class="form">
+            <section class="edit-form">
+                <h1>Editar produto de id {{produto._id}}</h1>
+                <form action="/products/edit/{{ produto._id }}" method="POST">
+                    <input type="hidden" name="_method" value="PUT">
+                    <div class="form-group">
+                        <label>Nome</label>
+                        <input type="text" name="name" value="{{ produto.name }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Preço</label>
+                        <input type="number" step="0.01" name="price" value="{{ produto.price }}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Estoque</label>
+                        <input type="number" name="stock" value="{{ produto.stock }}" required>
+                    </div>
+                </form>
+            </section>
+
+            <section class="actions"> 
+                <form action="/products/edit/{{ produto._id }}" method="POST" class="btn-save">
+                    <input type="hidden" name="_method" value="PUT">
+                    <button type="submit">Salvar</button>
+                </form>
+
+                <form action="/products/edit/{{ produto._id }}" method="POST" class="btn-delete">
+                    <input type="hidden" name="_method" value="DELETE">
+                    <button type="submit">Excluir Produto</button>
+                </form>
+
+                <a href="/products" class="btn-cancel">Cancelar</a>
+            </section>
+        </div>
+    </main>
+</body>
+</html>

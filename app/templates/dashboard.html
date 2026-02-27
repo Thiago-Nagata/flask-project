@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dashboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Dashboard</title>
+</head>
+<body>
+    <main>
+        <div class="navbar">
+            <h1>Stiles</h1>
+            <a href="/products" class="nav-link">Produtos</a>
+        </div>
+        <section>
+            <div class="container">
+                <h2>Dashboard</h2>
+
+                <div class="cards">
+
+                    <div class="card">
+                        <h3>Produtos</h3>
+                        <div class="value">{{total_products}}</div>
+                        <a href="/products">
+                            <button type="button" class="btn-primary">Ir pra produtos</button>
+                        </a>
+                    </div>    
+                
+                    <div class="card">
+                        <h3>Vendas</h3>
+                        <div class="value">-</div>
+                        <a href="/sales">
+                            <button type="button" class="btn-secondary">Ir pra vendas</button>
+                        </a>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+    </main>
+</body>
+</html>

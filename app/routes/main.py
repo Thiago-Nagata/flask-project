@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, jsonify, redirect, render_template, request
 from pydantic import ValidationError
 from app import db
 from bson import ObjectId
@@ -11,30 +11,44 @@ import csv
 
 main_bp = Blueprint('main_bp', __name__)
 
+# Dashboard
+@main_bp.route('/dashboard', methods=['GET'])
+@token_required
+def dashboard(token):
+    total_products = db.products.count_documents({})
+
+    return render_template("dashboard.html", total_products=total_products)
+
 # Rota de produtos
 @main_bp.route('/products', methods=['GET'])
-def get_products():
-    products_cursor = db.products.find({})
-    products_list = [
-        ProductDBModel(**product).model_dump(by_alias=True, exclude_none=True) for product in products_cursor
-        ]
-    return jsonify(products_list)
-
-# Cria um produto se fornecer o token
-@main_bp.route('/product', methods=['POST'])
 @token_required
-def create_product(token):
-    try:
-        product = Product(**request.get_json())
-    except ValidationError as e:
-        return jsonify({"error":e.errors()})
-    
-    result = db.products.insert_one(product.model_dump())
-    return jsonify({"message":"Rota de criação de produtos",
-                    "id": str(result.inserted_id)}), 201
+def get_products(current_user):
+    products = list(db.products.find())
+    return render_template("products.html", products=products)
 
-@main_bp.route('/product/<string:product_id>', methods=['GET'])
-def get_product_by_id(product_id):
+@main_bp.route('/products/add', methods=['GET'])
+@token_required
+def create_product_interface(current_user):
+    return render_template("add_product.html")
+
+# Criar produto
+@main_bp.route('/products/add', methods=['POST'])
+@token_required
+def create_product(current_user):
+
+    new_product_data = {
+        "name": request.form.get("name"),
+        "price": request.form.get("price"),
+        "description": request.form.get("description"),
+        "stock": request.form.get("stock")
+    }
+    
+    db.products.insert_one(new_product_data)
+    return redirect("/products") 
+
+@main_bp.route('/products/<string:product_id>', methods=['GET'])
+@token_required
+def get_product_by_id(token, product_id):
     try:
         oid = ObjectId(product_id)
     except Exception as e:
@@ -48,39 +62,43 @@ def get_product_by_id(product_id):
     else:
         return jsonify({"error":f"Produto com o {product_id} - Não encontrado !"})
 
-@main_bp.route('/product/<string:product_id>', methods=['PUT'])
+@main_bp.route('/products/edit/<string:product_id>', methods=['GET'])
 @token_required
-def update_product(token, product_id):
+def edit_product(current_user, product_id):
     try:
-        oid = ObjectId(product_id)
-        update_data = UpdateProduct(**request.get_json())
-    except ValidationError as e:
-        return jsonify({"error": e.errors()})
-    
-    update_result = db.products.update_one(
-        {"_id": oid},
-        {"$set": update_data.model_dump(exclude_unset = True)}
-    )
-    if update_result.matched_count == 0:
-        return jsonify({"error": "Produto não Encontrado"}), 404
-    
-    update_product = db.products.find_one({"_id": oid})
-    return jsonify(ProductDBModel(**update_product).model_dump(by_alias=True, exclude=None))
+        produto = db.products.find_one({"_id": ObjectId(product_id)})
+    except:
+        return redirect("/products")
 
-@main_bp.route('/product/<string:product_id>', methods=['DELETE'])
+    if not produto:
+        return redirect("/products")
+
+    produto["_id"] = str(produto["_id"])
+    return render_template("edit_product.html", produto=produto)
+
+@main_bp.route('/products/edit/<string:product_id>', methods=['POST'])
 @token_required
-def delete_product(token, product_id):
-    try:
-        oid = ObjectId(product_id)
-    except Exception:
-        return jsonify({"error": "id do produto inválido"}), 400
-    
-    delete_product = db.products.delete_one({"_id": oid})
+def update_product(current_user, product_id):
+    method = request.form.get("_method")
 
-    if delete_product.deleted_count == 0:
-        return jsonify({"error": "Produto não foi encontrado"}), 404
+    if method == "PUT":
+        update_data ={
+            "name": request.form.get("name"),
+            "price": float(request.form.get("price")),
+            "stock": int(request.form.get("stock"))
+        }
+
+        db.products.update_one(
+            {"_id": ObjectId(product_id)},
+            {"$set": update_data}
+        )
+        return redirect("/products")
     
-    return "", 204
+    if method == "DELETE":
+        db.products.delete_one({"_id": ObjectId(product_id)})
+        return redirect("/products")
+        
+    return "Método Invalido", 400
 
 @main_bp.route('/sales/upload', methods=['POST'])
 @token_required
@@ -120,7 +138,3 @@ def upload_sales(token):
             "vendas importados": len(sales_to_insert),
             "erros encontrados": error
         }), 200
-
-@main_bp.route('/')
-def index():
-    return jsonify({"message":"Bem vindo ao Stiles"})
