@@ -20,11 +20,11 @@ The project evolved from a backend-only REST API into a server-rendered web appl
 - Testing with Postman and Thunderclient
 
 🔹 *Improvements implemented (By me)*
-- Criação de interface em HTML
-- Estilização com CSS
-- Integração das rotas com templates
-- Adaptação da lógica da API para renderização de páginas
-- Melhor organização da estrutura do projeto
+- Creating an inteface in HTML
+  Styling with CSS
+- Route integrations with template
+- Adaptating API logic for page rendering
+- Better organization of the project structure
 
 # What i learned
 - Building RESTful APIs with Flask
